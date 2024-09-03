@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class CarMovement : MonoBehaviour
 {
-    public float speed = 5f; // Speed at which the car moves
+    private float speed = 5f; // Default speed of the car
     public float leftLimit = -15f; // Left boundary of the screen
     public float rightLimit = 15f; // Right boundary of the screen
 
@@ -11,22 +11,16 @@ public class CarMovement : MonoBehaviour
         // Move the car
         transform.Translate(Vector3.right * speed * Time.deltaTime);
 
-        // Destroy the car once it moves out of bounds
+        // Check if the car has moved out of the screen and destroy it
         if (transform.position.x > rightLimit)
         {
-            DestroyCar();
+            Destroy(gameObject);
         }
     }
 
-    private void DestroyCar()
+    // Method to set the speed of the car
+    public void SetSpeed(float newSpeed)
     {
-        // When destroying the car, free up its Y position
-        CarSpawner spawner = FindObjectOfType<CarSpawner>();
-        if (spawner != null)
-        {
-            spawner.occupiedPositions.Remove(transform.position.y);
-        }
-
-        Destroy(gameObject);
+        speed = newSpeed;
     }
 }

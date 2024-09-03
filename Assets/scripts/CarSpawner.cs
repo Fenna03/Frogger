@@ -1,6 +1,5 @@
 using UnityEngine;
 using System.Collections;
-using System.Collections.Generic;
 
 public class CarSpawner : MonoBehaviour
 {
@@ -9,58 +8,39 @@ public class CarSpawner : MonoBehaviour
     public float[] spawnYPositions; // Array of y-coordinates where cars will spawn
     public float spawnXLeft = -10f; // X-coordinate for spawning cars on the left
     public float spawnDelay = 0.5f; // Delay between spawning individual cars
-    public int initialCarCount = 6; // Number of cars initially on the road
+    public float minSpeed = 2f; // Minimum speed for cars
+    public float maxSpeed = 6f; // Maximum speed for cars
 
-    public HashSet<float> occupiedPositions = new HashSet<float>();
+    private float[] laneSpeeds; // Array of speeds corresponding to each Y-coordinate
 
     private void Start()
     {
-        // Spawn initial cars
-        for (int i = 0; i < initialCarCount; i++)
+        // Initialize the laneSpeeds array
+        laneSpeeds = new float[spawnYPositions.Length];
+
+        // Randomly generate speeds for each lane
+        for (int i = 0; i < laneSpeeds.Length; i++)
         {
-            SpawnInitialCar();
+            laneSpeeds[i] = Random.Range(minSpeed, maxSpeed);
         }
 
-        // Start the coroutine for continuous car spawning
         StartCoroutine(SpawnCars());
-    }
-
-    private void SpawnInitialCar()
-    {
-        // Find a random position that is not occupied
-        float randomY;
-        do
-        {
-            randomY = spawnYPositions[Random.Range(0, spawnYPositions.Length)];
-        } while (occupiedPositions.Contains(randomY));
-
-        // Mark this position as occupied
-        occupiedPositions.Add(randomY);
-
-        // Spawn the car at the designated position
-        Vector3 spawnPosition = new Vector3(spawnXLeft, randomY, 0f);
-        Instantiate(carPrefab, spawnPosition, Quaternion.identity);
     }
 
     private IEnumerator SpawnCars()
     {
         while (true)
         {
-            // Spawn cars at different intervals, avoiding occupied positions
+            // Spawn cars at different intervals
             for (int i = 0; i < spawnYPositions.Length; i++)
             {
-                float randomY;
-                do
-                {
-                    randomY = spawnYPositions[Random.Range(0, spawnYPositions.Length)];
-                } while (occupiedPositions.Contains(randomY));
+                float yPos = spawnYPositions[i];
+                Vector3 spawnPosition = new Vector3(spawnXLeft, yPos, 0f);
 
-                // Mark this position as occupied
-                occupiedPositions.Add(randomY);
+                GameObject newCar = Instantiate(carPrefab, spawnPosition, Quaternion.identity);
 
-                // Spawn the car at the designated position
-                Vector3 spawnPosition = new Vector3(spawnXLeft, randomY, 0f);
-                Instantiate(carPrefab, spawnPosition, Quaternion.identity);
+                // Set the speed of the car based on the Y-coordinate
+                newCar.GetComponent<CarMovement>().SetSpeed(laneSpeeds[i]);
 
                 yield return new WaitForSeconds(spawnDelay);
             }
