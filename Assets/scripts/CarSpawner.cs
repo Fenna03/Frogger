@@ -1,95 +1,125 @@
+using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class CarSpawner : MonoBehaviour
 {
     public GameObject carPrefab; // The car prefab to spawn
+    public GameObject waterPrefab; // The water prefab to spawn
     public float spawnDelay = 0.5f; // Delay between spawning individual cars
-    public float spawnXLeft = -10f; // X-coordinate for spawning cars
-    public int minY = 1; // Minimum y-coordinate for spawning cars
-    public int maxY = 10; // Maximum y-coordinate for spawning cars
-    public int maxConsecutiveLanes = 4; // Maximum number of consecutive lanes with cars
     public float laneHeight = 1f; // Height of each lane
-    public float minSpeed = 2f; // Minimum car speed
-    public float maxSpeed = 10f; // Maximum car speed
+    public int minLanes = 3; // Minimum number of lanes to spawn cars on
+    public int maxLanes = 7; // Maximum number of lanes to spawn cars on
+    public LaneSpawner laneSpawner; // Reference to the LaneSpawner script
 
-    private Queue<int> recentSpawnedLanes; // Queue to keep track of recent y-coordinates
-    private Dictionary<int, float> laneSpeeds; // Dictionary to store speeds for each lane
+    public float waterLogSpacing = 5f; // Distance between water logs
+    public float waterSpawnXLeft = -10f; // X-coordinate to start spawning water logs on the left
+    public float waterSpawnXRight = 11f; // X-coordinate to start spawning water logs on the right
 
     private void Start()
     {
-        recentSpawnedLanes = new Queue<int>(maxConsecutiveLanes);
-        laneSpeeds = new Dictionary<int, float>();
-        StartCoroutine(SpawnCars());
+        StartCoroutine(SpawnEntities());
     }
 
-    private IEnumerator SpawnCars()
+    private IEnumerator SpawnEntities()
     {
-        // Randomize the y-coordinates for the current set of lanes and assign speeds
-        List<int> randomizedYPositions = RandomizeYPositions();
-
         while (true)
         {
-            foreach (int y in randomizedYPositions)
-            {
-                if (!laneSpeeds.ContainsKey(y))
-                {
-                    laneSpeeds[y] = Random.Range(minSpeed, maxSpeed); // Assign a random speed to the lane
-                }
+            // Determine available lanes for cars
+            var availableCarLanes = GetAvailableLanesForCars();
 
-                // Spawn a car at the given y-coordinate
-                SpawnCarAtY(y, laneSpeeds[y]);
+            // Determine blue lanes for water
+            var blueLanes = GetBlueLanes();
+
+            // Spawn cars on random lanes
+            foreach (float y in availableCarLanes)
+            {
+                Vector3 spawnPosition = new Vector3(waterSpawnXLeft, y, 0f);
+                Instantiate(carPrefab, spawnPosition, Quaternion.identity);
                 yield return new WaitForSeconds(spawnDelay);
             }
 
-            // Wait before starting the next round of car spawns
-            yield return new WaitForSeconds(spawnDelay * randomizedYPositions.Count);
+            // Spawn water logs on blue lanes, with alternating directions
+            for (int i = 0; i < blueLanes.Count; i++)
+            {
+                float y = blueLanes[i];
+                float xOffset = (i % 2 == 0) ? waterSpawnXLeft : waterSpawnXRight; // Start position based on direction
 
-            // Randomize y-coordinates again for the next round
-            randomizedYPositions = RandomizeYPositions();
+                // Determine the direction of movement based on index
+                bool moveLeftToRight = i % 2 == 0;
+
+                // Spawn water logs at the starting xOffset and spaced out
+                while (moveLeftToRight ? xOffset < 0 : xOffset > -waterLogSpacing * 5) // Ensure logs move off-screen
+                {
+                    Vector3 spawnPosition = new Vector3(xOffset, y, 0f);
+                    GameObject waterLog = Instantiate(waterPrefab, spawnPosition, Quaternion.identity);
+
+                    // Set movement direction
+                    WaterPrefab movement = waterLog.GetComponent<WaterPrefab>();
+                    if (movement != null)
+                    {
+                        movement.SetDirection(moveLeftToRight);
+                    }
+
+                    // Increment xOffset by spacing
+                    xOffset += moveLeftToRight ? waterLogSpacing : -waterLogSpacing;
+
+                    yield return new WaitForSeconds(spawnDelay); // Optional delay between logs
+                }
+            }
+
+            // Wait before starting the next round of spawns
+            yield return new WaitForSeconds(spawnDelay * (availableCarLanes.Count + blueLanes.Count));
         }
     }
 
-    private List<int> RandomizeYPositions()
+    private List<float> GetAvailableLanesForCars()
     {
-        List<int> result = new List<int>();
+        List<float> availableLanes = new List<float>();
 
-        int consecutiveCount = 0;
-        int lastY = -1;
-
-        // Randomly generate y-coordinates and ensure constraints
-        while (result.Count < 10) // Adjust the number as needed
+        for (float y = 1f; y <= 10f; y += laneHeight) // Adjust max value as needed
         {
-            int y = Random.Range(minY, maxY + 1); // Generate a random integer within the specified range
-
-            if (y == lastY)
+            if (!laneSpawner.IsLaneBlue(y)) // Exclude blue lanes for cars
             {
-                consecutiveCount++;
-            }
-            else
-            {
-                consecutiveCount = 1;
-                lastY = y;
-            }
-
-            if (consecutiveCount <= maxConsecutiveLanes)
-            {
-                result.Add(y);
+                availableLanes.Add(y);
             }
         }
 
-        return result;
+        availableLanes = ShuffleList(availableLanes);
+
+        int laneCount = Random.Range(minLanes, maxLanes + 1);
+        if (availableLanes.Count > laneCount)
+        {
+            availableLanes = availableLanes.GetRange(0, laneCount);
+        }
+
+        return availableLanes;
     }
 
-    private void SpawnCarAtY(int y, float speed)
+    private List<float> GetBlueLanes()
     {
-        Vector3 spawnPosition = new Vector3(spawnXLeft, y, 0f);
-        GameObject car = Instantiate(carPrefab, spawnPosition, Quaternion.identity);
-        CarMovement carMovement = car.GetComponent<CarMovement>();
-        if (carMovement != null)
+        List<float> blueLanes = new List<float>();
+
+        for (float y = 1f; y <= 10f; y += laneHeight) // Adjust max value as needed
         {
-            carMovement.SetSpeed(speed); // Set the car's speed based on the lane
+            if (laneSpawner.IsLaneBlue(y)) // Include only blue lanes
+            {
+                blueLanes.Add(y);
+            }
         }
+
+        return blueLanes;
+    }
+
+    private List<float> ShuffleList(List<float> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            float temp = list[i];
+            int randomIndex = Random.Range(i, list.Count);
+            list[i] = list[randomIndex];
+            list[randomIndex] = temp;
+        }
+        return list;
     }
 }
