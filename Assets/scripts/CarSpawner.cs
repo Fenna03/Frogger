@@ -16,9 +16,25 @@ public class CarSpawner : MonoBehaviour
     public float waterSpawnXLeft = -10f; // X-coordinate to start spawning water logs on the left
     public float waterSpawnXRight = 11f; // X-coordinate to start spawning water logs on the right
 
+    // Dictionary to store speeds for different lanes
+    private Dictionary<float, float> laneSpeeds = new Dictionary<float, float>();
+
     private void Start()
     {
+        // Initialize car speeds for different lanes
+        InitializeLaneSpeeds();
+
         StartCoroutine(SpawnEntities());
+    }
+
+    private void InitializeLaneSpeeds()
+    {
+        // Define different speeds for each lane
+        for (float y = 1f; y <= 10f; y += laneHeight) // Adjust range and increment as needed
+        {
+            float speed = Random.Range(1f, 5f); // Random speed between 1 and 5 for example
+            laneSpeeds[y] = speed;
+        }
     }
 
     private IEnumerator SpawnEntities()
@@ -35,7 +51,15 @@ public class CarSpawner : MonoBehaviour
             foreach (float y in availableCarLanes)
             {
                 Vector3 spawnPosition = new Vector3(waterSpawnXLeft, y, 0f);
-                Instantiate(carPrefab, spawnPosition, Quaternion.identity);
+                GameObject car = Instantiate(carPrefab, spawnPosition, Quaternion.identity);
+
+                // Set the car's speed based on the lane's y-coordinate
+                CarMovement carMovement = car.GetComponent<CarMovement>();
+                if (carMovement != null)
+                {
+                    carMovement.SetSpeed(laneSpeeds[y]);
+                }
+
                 yield return new WaitForSeconds(spawnDelay);
             }
 
@@ -123,3 +147,4 @@ public class CarSpawner : MonoBehaviour
         return list;
     }
 }
+

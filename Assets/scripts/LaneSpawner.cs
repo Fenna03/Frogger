@@ -50,7 +50,7 @@ public class LaneSpawner : MonoBehaviour
             lanePrefab = lanePrefabs[2]; // Blue lane prefab
             laneColor = new Color(0.407f, 0.4f, 1f); // RGB values for #6866FF
             blueGroupCount++;
-            if (blueGroupCount >= Random.Range(3, 8)) // Randomize the end of the blue group between 3 and 7 lanes
+            if (blueGroupCount >= Random.Range(3, 6)) // Shorter blue group range (3 to 5 lanes)
             {
                 isInBlueGroup = false;
                 blueGroupCount = 0;
@@ -58,16 +58,18 @@ public class LaneSpawner : MonoBehaviour
         }
         else
         {
-            lanePrefab = lanePrefabs[laneIndex % (lanePrefabs.Length - 1)]; // Skip blue lane prefab for regular lanes
-            laneColor = lanePrefab.GetComponent<SpriteRenderer>().color;
-
-            // Start a blue group with a certain probability
-            if (Random.Range(0, 10) < 2) // Adjust probability as needed
+            // Probability to start a blue group is reduced
+            if (Random.Range(0, 10) < 1) // Reduced probability to 10% to start a blue group
             {
                 isInBlueGroup = true;
                 blueGroupCount = 0;
                 lanePrefab = lanePrefabs[2]; // Blue lane prefab
                 laneColor = new Color(0.407f, 0.4f, 1f); // RGB values for #6866FF
+            }
+            else
+            {
+                lanePrefab = lanePrefabs[laneIndex % (lanePrefabs.Length - 1)]; // Regular lanes (black or gray)
+                laneColor = lanePrefab.GetComponent<SpriteRenderer>().color;
             }
         }
 
@@ -83,7 +85,6 @@ public class LaneSpawner : MonoBehaviour
         // Update the laneIndex to alternate between prefabs
         laneIndex++;
     }
-
 
     private void RecycleLane()
     {
@@ -101,7 +102,7 @@ public class LaneSpawner : MonoBehaviour
             newLanePrefab = lanePrefabs[2]; // Blue lane prefab
             newLaneColor = new Color(0.407f, 0.4f, 1f); // RGB values for #6866FF
             blueGroupCount++;
-            if (blueGroupCount >= Random.Range(3, 8)) // Randomize the end of the blue group between 3 and 7 lanes
+            if (blueGroupCount >= Random.Range(3, 6)) // Shorter blue group range (3 to 5 lanes)
             {
                 isInBlueGroup = false;
                 blueGroupCount = 0;
@@ -109,16 +110,17 @@ public class LaneSpawner : MonoBehaviour
         }
         else
         {
-            newLanePrefab = lanePrefabs[laneIndex % (lanePrefabs.Length - 1)]; // Skip blue lane prefab for regular lanes
-            newLaneColor = newLanePrefab.GetComponent<SpriteRenderer>().color;
-
-            // Start a blue group with a certain probability
-            if (Random.Range(0, 10) < 2) // Adjust probability as needed
+            if (Random.Range(0, 10) < 1) // Reduced probability to 10% to start a blue group
             {
                 isInBlueGroup = true;
                 blueGroupCount = 0;
                 newLanePrefab = lanePrefabs[2]; // Blue lane prefab
                 newLaneColor = new Color(0.407f, 0.4f, 1f); // RGB values for #6866FF
+            }
+            else
+            {
+                newLanePrefab = lanePrefabs[laneIndex % (lanePrefabs.Length - 1)]; // Regular lanes (black or gray)
+                newLaneColor = newLanePrefab.GetComponent<SpriteRenderer>().color;
             }
         }
 
@@ -139,11 +141,9 @@ public class LaneSpawner : MonoBehaviour
         laneIndex++;
     }
 
-
     public bool IsLaneBlue(float y)
     {
         Color blueColor = new Color(0.407f, 0.4f, 1f); // RGB values for #6866FF
         return laneColors.TryGetValue(y, out Color color) && color == blueColor;
     }
-
 }
