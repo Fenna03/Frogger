@@ -222,7 +222,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &50105754
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -325,6 +325,7 @@ MonoBehaviour:
   moveDistance: 1
   moveSpeed: 5
   explosionPrefab: {fileID: 5134513553957274122, guid: 1313054a0d749ee488aac108faa95d1e, type: 3}
+  cameraFollow: {fileID: 0}
 --- !u!61 &109178174
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -494,14 +495,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   carPrefab: {fileID: 4231503473692144175, guid: f7e7ca7e3c88f1e408ac2b8174306daf, type: 3}
-  spawnInterval: 0.1
-  spawnYPositions:
-  - 1
-  - 3
-  - -1
-  - -3
+  spawnDelay: 0.09
   spawnXLeft: -10
-  spawnDelay: 0.2
+  minY: 1
+  maxY: 50000000
+  maxConsecutiveLanes: 4
+  laneHeight: 1
+  carSpeed: 5
 --- !u!4 &199314508
 Transform:
   m_ObjectHideFlags: 0
@@ -612,6 +612,7 @@ GameObject:
   - component: {fileID: 519420032}
   - component: {fileID: 519420031}
   - component: {fileID: 519420029}
+  - component: {fileID: 519420033}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -686,13 +687,28 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -10}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 2, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &519420033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 519420028}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d08ce2dc08cc2d4ba4e12c12d815072, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  target: {fileID: 109178176}
+  smoothSpeed: 1
+  offset: {x: 0, y: 2, z: 0}
 --- !u!1 &731146583
 GameObject:
   m_ObjectHideFlags: 0
@@ -704,7 +720,7 @@ GameObject:
   - component: {fileID: 731146585}
   - component: {fileID: 731146584}
   m_Layer: 0
-  m_Name: Square (2)
+  m_Name: Square black
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -945,6 +961,57 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &890544527
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 890544529}
+  - component: {fileID: 890544528}
+  m_Layer: 0
+  m_Name: laneSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &890544528
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890544527}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7c4ffefd9924d245857a538059560b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lanePrefabs:
+  - {fileID: 1622591960}
+  - {fileID: 731146583}
+  numberOfLanes: 20
+  laneHeight: 1
+  player: {fileID: 109178176}
+  spawnOffset: -5
+--- !u!4 &890544529
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890544527}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2.7855475, y: 0.2754583, z: 0.0011438346}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1159220221
 GameObject:
   m_ObjectHideFlags: 0
@@ -961,7 +1028,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &1159220222
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1129,7 +1196,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &1298314536
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1208,7 +1275,7 @@ GameObject:
   - component: {fileID: 1622591962}
   - component: {fileID: 1622591961}
   m_Layer: 0
-  m_Name: Square
+  m_Name: Square gray
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1339,7 +1406,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &2030901109
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1415,3 +1482,4 @@ SceneRoots:
   - {fileID: 109178176}
   - {fileID: 1929923978}
   - {fileID: 199314508}
+  - {fileID: 890544529}

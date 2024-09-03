@@ -6,7 +6,8 @@ public class moving : MonoBehaviour
 {
     public float moveDistance = 1f; // Distance of each move (one block)
     public float moveSpeed = 5f; // Speed at which the frog moves to the new position
-    public GameObject explosionPrefab; // The explosion prefab to spawn
+    public GameObject explosionPrefab; // Explosion effect
+    public CameraFollow cameraFollow; // Reference to the camera follow script
 
     private Vector3 targetPosition; // Target position to move to
 
@@ -65,22 +66,20 @@ public class moving : MonoBehaviour
     // Method to handle player death
     private void Die()
     {
+        gameObject.GetComponent<SpriteRenderer>().enabled = false;
         Debug.Log("Player has died!");
-        StartCoroutine(Dying()); // Start the dying process
+        Instantiate(explosionPrefab, transform.position, Quaternion.identity);
+        if (cameraFollow != null)
+        {
+            cameraFollow.StopFollowing(); // Stop the camera from following the player
+        }
+        StartCoroutine(HandleDeath());
     }
 
-    private IEnumerator Dying()
+    private IEnumerator HandleDeath()
     {
-        // Spawn explosion prefab at the player's current position
-        Instantiate(explosionPrefab, transform.position, Quaternion.identity);
-
-        // Hide the player (optional)
-        gameObject.GetComponent<SpriteRenderer>().enabled = false;
-
-        // Wait for a moment to let the explosion play
-        yield return new WaitForSeconds(1f);
-
-        // Restart the scene
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        yield return new WaitForSeconds(1f); // Wait for 2 seconds (or any time you want before restarting)
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the current scene
     }
 }
+

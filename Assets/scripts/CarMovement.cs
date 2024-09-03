@@ -2,8 +2,7 @@ using UnityEngine;
 
 public class CarMovement : MonoBehaviour
 {
-    private float speed = 5f; // Default speed of the car
-    public float leftLimit = -15f; // Left boundary of the screen
+    private float speed = 5f; // Speed at which the car moves
     public float rightLimit = 15f; // Right boundary of the screen
 
     private void Update()
@@ -18,7 +17,7 @@ public class CarMovement : MonoBehaviour
         }
     }
 
-    // Method to set the speed of the car
+    // Method to set the car's speed dynamically
     public void SetSpeed(float newSpeed)
     {
         speed = newSpeed;

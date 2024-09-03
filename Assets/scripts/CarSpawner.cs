@@ -1,52 +1,95 @@
-using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
 
 public class CarSpawner : MonoBehaviour
 {
     public GameObject carPrefab; // The car prefab to spawn
-    public float spawnInterval = 1f; // Time between spawning cars
-    public float[] spawnYPositions; // Array of y-coordinates where cars will spawn
-    public float spawnXLeft = -10f; // X-coordinate for spawning cars on the left
     public float spawnDelay = 0.5f; // Delay between spawning individual cars
-    public float minSpeed = 2f; // Minimum speed for cars
-    public float maxSpeed = 6f; // Maximum speed for cars
+    public float spawnXLeft = -10f; // X-coordinate for spawning cars
+    public int minY = 1; // Minimum y-coordinate for spawning cars
+    public int maxY = 10; // Maximum y-coordinate for spawning cars
+    public int maxConsecutiveLanes = 4; // Maximum number of consecutive lanes with cars
+    public float laneHeight = 1f; // Height of each lane
+    public float minSpeed = 2f; // Minimum car speed
+    public float maxSpeed = 10f; // Maximum car speed
 
-    private float[] laneSpeeds; // Array of speeds corresponding to each Y-coordinate
+    private Queue<int> recentSpawnedLanes; // Queue to keep track of recent y-coordinates
+    private Dictionary<int, float> laneSpeeds; // Dictionary to store speeds for each lane
 
     private void Start()
     {
-        // Initialize the laneSpeeds array
-        laneSpeeds = new float[spawnYPositions.Length];
-
-        // Randomly generate speeds for each lane
-        for (int i = 0; i < laneSpeeds.Length; i++)
-        {
-            laneSpeeds[i] = Random.Range(minSpeed, maxSpeed);
-        }
-
+        recentSpawnedLanes = new Queue<int>(maxConsecutiveLanes);
+        laneSpeeds = new Dictionary<int, float>();
         StartCoroutine(SpawnCars());
     }
 
     private IEnumerator SpawnCars()
     {
+        // Randomize the y-coordinates for the current set of lanes and assign speeds
+        List<int> randomizedYPositions = RandomizeYPositions();
+
         while (true)
         {
-            // Spawn cars at different intervals
-            for (int i = 0; i < spawnYPositions.Length; i++)
+            foreach (int y in randomizedYPositions)
             {
-                float yPos = spawnYPositions[i];
-                Vector3 spawnPosition = new Vector3(spawnXLeft, yPos, 0f);
+                if (!laneSpeeds.ContainsKey(y))
+                {
+                    laneSpeeds[y] = Random.Range(minSpeed, maxSpeed); // Assign a random speed to the lane
+                }
 
-                GameObject newCar = Instantiate(carPrefab, spawnPosition, Quaternion.identity);
-
-                // Set the speed of the car based on the Y-coordinate
-                newCar.GetComponent<CarMovement>().SetSpeed(laneSpeeds[i]);
-
+                // Spawn a car at the given y-coordinate
+                SpawnCarAtY(y, laneSpeeds[y]);
                 yield return new WaitForSeconds(spawnDelay);
             }
 
-            // Wait before starting the next wave of cars
-            yield return new WaitForSeconds(spawnInterval);
+            // Wait before starting the next round of car spawns
+            yield return new WaitForSeconds(spawnDelay * randomizedYPositions.Count);
+
+            // Randomize y-coordinates again for the next round
+            randomizedYPositions = RandomizeYPositions();
+        }
+    }
+
+    private List<int> RandomizeYPositions()
+    {
+        List<int> result = new List<int>();
+
+        int consecutiveCount = 0;
+        int lastY = -1;
+
+        // Randomly generate y-coordinates and ensure constraints
+        while (result.Count < 10) // Adjust the number as needed
+        {
+            int y = Random.Range(minY, maxY + 1); // Generate a random integer within the specified range
+
+            if (y == lastY)
+            {
+                consecutiveCount++;
+            }
+            else
+            {
+                consecutiveCount = 1;
+                lastY = y;
+            }
+
+            if (consecutiveCount <= maxConsecutiveLanes)
+            {
+                result.Add(y);
+            }
+        }
+
+        return result;
+    }
+
+    private void SpawnCarAtY(int y, float speed)
+    {
+        Vector3 spawnPosition = new Vector3(spawnXLeft, y, 0f);
+        GameObject car = Instantiate(carPrefab, spawnPosition, Quaternion.identity);
+        CarMovement carMovement = car.GetComponent<CarMovement>();
+        if (carMovement != null)
+        {
+            carMovement.SetSpeed(speed); // Set the car's speed based on the lane
         }
     }
 }
